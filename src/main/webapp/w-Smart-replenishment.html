@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html class="x-admin-sm">
+<head>
+<meta charset="UTF-8">
+<title>智能补货</title>
+<meta name="renderer" content="webkit">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<!-- 
+        <meta name="viewport" content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi" />
+         -->
+<link rel="stylesheet" href="./css/font.css">
+<link rel="stylesheet" href="./css/xadmin.css">
+<script src="./lib/layui/layui.js" charset="utf-8"></script>
+<script src="./lib/layui/layui.all.js" charset="utf-8"></script>
+<script type="text/javascript" src="./js/xadmin.js"></script>
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.js"></script>
+<script src="js/vue.js"></script>
+<script src="js/axios.min.js"></script>
+<script src="js/qs.min.js"></script>
+<style>
+</style>
+</head>
+
+<body>
+	<div class="x-nav">
+		<span class="layui-breadcrumb"> <a href="">首页</a> <a href="">演示</a>
+			<a> <cite>导航元素</cite></a>
+		</span> <a class="layui-btn layui-btn-small"
+			style="line-height: 1.6em; margin-top: 3px; float: right"
+			onclick="location.reload()" title="刷新"> <i
+			class="layui-icon layui-icon-refresh" style="line-height: 30px"></i>
+		</a>
+	</div>
+	<div class="layui-fluid" id="tableList">
+		<div class="layui-row layui-col-space15">
+			<div class="layui-col-md12">
+				<div class="layui-card">
+					<div class="layui-card-header">
+						<div class="layui-input">
+							库存数量小于：<input type="text" v-model="shuliang">
+							<button class="layui-btn" @click="selectAll()">搜索</button>
+						</div>
+					</div>
+					<div class="layui-card-body">
+						<table class="layui-table">
+							<tr>
+								<td><input type="checkbox" name="" lay-skin="primary"></td>
+								<td>商品名称</td>
+								<td>商品进价</td>
+								<td>商品售价</td>
+								<td>商品存储仓库</td>
+								<td>库存数量</td>
+								<td>详细说明</td>
+								<td>操作</td>
+							</tr>
+							<tr v-for="c,index in list">
+								<td><input type="checkbox" value="c.pid" lay-skin="primary" /></td>
+								<td>{{c.pname}}</td>
+								<td>{{c.pbprice}}</td>
+								<td>{{c.psprice}}</td>
+								<td>{{c.warehouses[0].wname}}</td>
+								<td>{{c.warenum}}</td>
+								<td>{{c.details}}</td>
+								<!-- onclick="openModak()" -->
+								<td><a title="添加" @click="addList(c)" href="javascript:;">
+										<i class="layui-icon">&#xe63c;</i></a>
+								</td>
+							</tr>
+						</table>
+
+						<fieldset id="page1" class="layui-elem-field layui-field-title"
+							style="margin-top: 30px;"></fieldset>
+					</div>
+					<!-- <div class="layui-card-body "></div>
+					<div>
+						优惠率：<input type="text" name="" />
+							付款优惠：<input type="text" name="" />
+							优惠后金额：<input type="text" name=""  />
+						本次付款：<input type="text" name="" />
+					</div>
+				</div> -->
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script>
+        var vm = new Vue({
+        	el:'#tableList',
+        	data:{
+        		list:[],
+        		shuliang:'',
+        		count:'',
+        		/* purchaseNum:'',
+        		discounts:'' */
+        		
+        	},
+			mounted(){//初始化显示后调用
+				this.selectAll()
+			},
+			methods:{
+				selectAll(){
+	    			var data=Qs.stringify({"warenum":this.shuliang})
+	                axios.post('product/queryAll',data, {headers:{'Content-Type':'application/x-www-form-urlencoded'}}).then(res=>{
+	                    this.list=res.data.data;
+	                    console.log(this.list);
+	                    this.count=res.data.count;
+	                    var count=this.count;
+	                    layui.use('laypage', function(){
+	                        var laypage = layui.laypage;
+	                        //执行一个laypage实例
+	                        laypage.render({
+	                            elem: 'page1' //注意，这里的 test1 是 ID，不用加 # 号
+	                            ,count: vm.$data.count//数据总数，从服务端得到
+	                            ,limit:vm.$data.pageSize
+	                            ,limits:[10,20,40]
+	                            ,theme: '#1E9FFF'
+	                            ,layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip']
+	                            ,curr: location.hash.replace('#!fenye=', '') //获取hash值为fenye的当前页
+	                            ,hash: 'fenye' //自定义hash值
+	                            ,jump: function(obj, first){
+	                                //obj包含了当前分页的所有参数，比如
+	                                //console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+	                                //得到每页显示的条数
+	                                //首次不执行
+	                                if(!first){
+
+	                                    console.log(obj.limit);
+	                                    $.ajax({
+	                                        url:"product/queryAll",
+	                                        type:"post",
+	                                        data:{"warenum":this.shuliang,"page":obj.curr,"limit":obj.limit},
+	                                        async: false,
+	                                        traditional:true,
+	                                        success:function(data){
+	                                            //layer.msg(dat9a);
+	                                            vm.$data.list=data.data;
+	                                            vm.$data.count=data.count;
+	                                            //location.reload(); //删除成功后再刷新
+	                                        },
+	                                        error:function(data){
+	                                        }
+	                                    });
+	                                }
+	                            }
+	                        });
+	                    });
+	                }).catch(err=>{
+	                    console.log(err);
+	                    alert('请求失败')
+	                })
+	            },
+				
+		        /* selectAll(){
+	    			var product=Qs.stringify({"warenum":this.shuliang})
+			        axios.post('/product/queryAll',product) .then(res=>{// ,'pageNum':curNum,'pageSize':5
+			        		console.log(res)
+			        		this.list=res.data.data;
+			        		this.totalNum=res.data.count;
+			        		}).catch(err=>{
+							alert('操作失败')
+						})
+		        }, */
+		        addList(c){
+		        	var purchaseNum=prompt("请输入你需要的数量","")
+		        	var discounts=prompt("请输入折扣率","")
+						if(discounts>100){
+							return false;
+						}else if(discounts<1){
+							return false;
+						}
+	    				var wpurchase={
+          			"purchaseGoodsId":c.pid
+          			,"purchaseGoodsName":c.pname
+          			,"purchasePrice":c.pbprice
+          			,"purchaseNum":purchaseNum
+          			,"discounts":discounts
+          			,"commet":c.details
+          			,"warehouse":c.warehouses[0].wid
+            	};
+		        	  axios.post("/Wpurchase/add",wpurchase) .then(res=>{// ,'pageNum':curNum,'pageSize':5
+			        		
+							alert('操作成功')
+							location.reload()
+			        		}).catch(err=>{
+							alert('操作失败')
+						})
+		          }
+	    	}
+        }); 
+        
+        function addList(argument) {
+
+            var data = tableCheck.getData();
+
+            layer.confirm('确认要添加吗？' + data,
+            function(index) {
+                //捉到所有被选中的，发异步进行删除
+                layer.msg('删除成功', {
+                    icon: 1
+                });
+                //$(".layui-form-checked").not('.header').parents('tr').remove();
+            });
+        }
+        </script>
+</html>

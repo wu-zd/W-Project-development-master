@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html class="x-admin-sm">
+
+<head>
+<meta charset="UTF-8">
+<title>欢迎页面-X-admin2.2</title>
+<meta name="renderer" content="webkit">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport"
+	content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi" />
+<link rel="stylesheet" href="/css/font.css">
+<link rel="stylesheet" href="/css/xadmin.css">
+<script type="text/javascript" src="/lib/layui/layui.js" charset="utf-8"></script>
+<script type="text/javascript" src="/js/xadmin.js"></script>
+</head>
+<body>
+	<div class="layui-fluid" id="app">
+		<div class="layui-row">
+			<form class="layui-form">
+
+				<div class="layui-form-item">
+					<label for="L_username" class="layui-form-label"> <span
+						class="x-red">*</span>客户等级
+					</label>
+					<div class="layui-input-inline">
+						<input type="text" id="L_username" name="grade" required=""
+							autocomplete="off" class="layui-input">
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label for="L_username" class="layui-form-label"> <span
+						class="x-red">*</span>客户名称
+					</label>
+					<div class="layui-input-inline">
+						<input type="text" id="L_username" name="name" required=""
+							lay-verify="nikename" autocomplete="off" class="layui-input">
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label for="L_username" class="layui-form-label"> <span
+						class="x-red"></span>类别
+					</label>
+					<div class="layui-input-inline">
+						<select name="cid" id="cid">
+							<option value="0">全部</option>
+						</select>
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label for="L_username" class="layui-form-label"> <span
+						class="x-red">*</span>销售人员
+					</label>
+					<div class="layui-input-inline">
+						<input type="text" id="L_username" name="sell" required=""
+							lay-verify="nikename" autocomplete="off" class="layui-input">
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label for="L_username" class="layui-form-label"> <span
+						class="x-red">*</span>联系人
+					</label>
+					<div class="layui-input-inline">
+						<input type="text" id="L_username" name="contact" required=""
+							lay-verify="nikename" autocomplete="off" class="layui-input">
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label for="L_username" class="layui-form-label"> <span
+						class="x-red">*</span>手机
+					</label>
+					<div class="layui-input-inline">
+						<input type="text" id="L_username" name="mobilePhone" required=""
+							lay-verify="nikename" autocomplete="off" class="layui-input">
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label for="L_username" class="layui-form-label"> <span
+						class="x-red">*</span>送货地址
+					</label>
+					<div class="layui-input-inline">
+						<input type="text" id="L_username" name="address" required=""
+							autocomplete="off" class="layui-input">
+					</div>
+				</div>
+
+				<div class="layui-form-item">
+					<label for="L_repass" class="layui-form-label"></label>
+					<button class="layui-btn" lay-filter="add" lay-submit="">增加</button>
+				</div>
+			</form>
+		</div>
+	</div>
+	
+	<script type="text/javascript">
+	layui.use([ 'form', 'layer' ], function() {
+		$ = layui.jquery;
+		var form = layui.form, layer = layui.layer;
+		//下拉框绑定数据
+		$.ajax({
+			//提交数据的类型 POST GET
+			type : "POST",
+			//提交的网址
+			url : "category/Menubangding",
+			//提交的数据
+			//返回数据的格式
+			datatype : "json",//“xml”, “html”, “script”, “json”, “jsonp”, “text”.
+			//成功返回之后调用的函数
+			success : function(result) {
+				var s = $(".tid").val();
+				var data = eval('(' + result + ')');
+				//alert(data)
+				$.each(data, function(index, item) {
+					var option = "<option ";
+					option += " value=" + item.cid + ">" + item.cType
+							+ "</option>";
+					option += "</optgroup>";
+					$("#cid").append($(option));
+				});
+				layui.form.render("select");
+			},
+			error : function() {
+				alert("查询失败!!!")
+			}
+		});
+	});
+	</script>
+	<script>
+		layui.use([ 'form', 'layer', 'jquery' ], function() {
+			$ = layui.jquery;
+			var form = layui.form, layer = layui.layer;
+
+			//自定义验证规则
+			form.verify({
+				nikename : function(value) {
+					if (value.length < 2) {
+						return '昵称不得少于2个字符';
+					}
+				},
+				pass : [ /(.+){6,12}$/, '密码必须6到12位' ],
+				repass : function(value) {
+					if ($('#L_pass').val() != $('#L_repass').val()) {
+						return '两次密码不一致';
+					}
+				}
+			});
+
+			//监听提交
+			form.on("submit(add)", function(data) {
+				$.post("kehu/insertKehu", data.field, function(data) {
+					//top.layer.msg("1");
+					if (data == "1") {
+						setTimeout(function() {
+							top.layer.msg("操作成功！");
+							layer.closeAll("iframe");
+							//刷新父页面
+							parent.location.reload();
+						}, 1000);
+					} else {
+						top.layer.msg("操作失败！");
+					}
+				});
+
+				return false;
+			})
+
+		});
+	</script>
+
+</body>
+
+</html>
